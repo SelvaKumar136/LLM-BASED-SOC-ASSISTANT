@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+venv/
+env/
+ENV/
+
+# Database
+chroma_db/
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+.files/
+
+# Streamlit/Chainlit
+.chainlit/
