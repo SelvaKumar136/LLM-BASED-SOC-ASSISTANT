@@ -9,7 +9,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from config import GROQ_API_KEY
 
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, api_key=GROQ_API_KEY)
+llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, api_key=GROQ_API_KEY, max_retries=10)
 
 TRIAGE_PROMPT = """You are an expert SOC Tier-1 analyst performing initial triage on security alerts.
 
@@ -100,7 +100,7 @@ IP Reputation: {json.dumps(alert.get('ip_reputation', {}), indent=2)}
 Timestamp: {alert.get('timestamp', 'N/A')}
 """
 
-    print(f"\n[TRIAGE] 🔍 Analyzing '{alert.get('title')}'...")
+    print(f"\n[TRIAGE] Analyzing '{alert.get('title')}'...")
     response = llm.invoke([
         SystemMessage(content=TRIAGE_PROMPT),
         HumanMessage(content=alert_text),
@@ -111,6 +111,6 @@ Timestamp: {alert.get('timestamp', 'N/A')}
     severity = triage_result.get("severity", "Medium")
     technique = triage_result.get("mitre_technique", "Unknown")
     category = triage_result.get("threat_category", "Unknown")
-    print(f"[TRIAGE] ✅ {severity} | {category} | {technique} | Route: {triage_result.get('route')}")
+    print(f"[TRIAGE] Result: {severity} | {category} | {technique} | Route: {triage_result.get('route')}")
 
     return {**state, "triage": triage_result}

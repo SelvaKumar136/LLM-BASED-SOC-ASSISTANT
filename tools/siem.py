@@ -161,8 +161,9 @@ def search_siem(query: str) -> dict:
         results.extend(_process_logs(q, n=2))
         results.extend(_network_logs(q, n=2))
 
-    # Sort by timestamp (most recent first)
+    # Sort by timestamp (most recent first) and cap at 6 results for token budget
     results.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    results = results[:6]
 
     return {
         "query": query,

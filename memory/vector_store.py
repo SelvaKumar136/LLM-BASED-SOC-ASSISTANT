@@ -17,7 +17,7 @@ _collection = _client.get_or_create_collection(
     name="soc_incidents",
     metadata={"hnsw:space": "cosine"},
 )
-print(f"[MEMORY] ChromaDB loaded – {_collection.count()} past incidents")
+print(f"[MEMORY] ChromaDB loaded - {_collection.count()} past incidents")
 
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ def store_incident(alert: dict, triage: dict, investigation: str) -> str:
         documents=[document],
         metadatas=[metadata],
     )
-    print(f"[MEMORY] Stored incident {doc_id[:8]}… ({_collection.count()} total)")
+    print(f"[MEMORY] Stored incident {doc_id[:8]}... ({_collection.count()} total)")
     return doc_id
 
 

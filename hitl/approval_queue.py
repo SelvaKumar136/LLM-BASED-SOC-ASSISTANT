@@ -4,6 +4,14 @@ Falls back to in-memory queue when Redis is unavailable.
 """
 
 import json
+import sys
+
+
+def _safe_print(*args, **kwargs):
+    """Print safely on Windows by replacing unencodable characters."""
+    text = " ".join(str(a) for a in args)
+    sys.stdout.write(text.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8", errors="replace") + "\n")
+    sys.stdout.flush()
 
 # ---------------------------------------------------------------------------
 # Try Redis; fall back to a simple in-memory list
@@ -19,9 +27,9 @@ try:
     _redis_client = redis.from_url(REDIS_URL, decode_responses=True)
     _redis_client.ping()
     _USE_REDIS = True
-    print("[HITL] ✅ Connected to Redis")
+    _safe_print("[HITL] Connected to Redis (ok)")
 except Exception:
-    print("[HITL] ⚠️  Redis unavailable – using in-memory queue (data lost on restart)")
+    _safe_print("[HITL] Redis unavailable - using in-memory queue (data lost on restart)")
 
 
 # ---------------------------------------------------------------------------
@@ -35,7 +43,7 @@ def queue_action(action: dict) -> None:
         _redis_client.rpush(QUEUE_KEY, payload)
     else:
         _memory_queue.append(payload)
-    print(f"  [HITL] Queued: {action.get('action_type')}")
+    _safe_print(f"  [HITL] Queued: {action.get('action_type')}")
 
 
 def get_pending_actions() -> list[dict]:
@@ -93,7 +101,7 @@ def deny_action(index: int) -> dict:
     else:
         _memory_queue.pop(index)
 
-    print(f"  [HITL] Denied: {action.get('action_type')}")
+    _safe_print(f"  [HITL] Denied: {action.get('action_type')}")
     return {"status": "denied", "action": action}
 
 
@@ -105,8 +113,8 @@ def _execute(action: dict) -> None:
     """Simulate executing an approved action."""
     t = action.get("action_type")
     if t == "block_ip":
-        print(f"  [EXEC] 🚫 Blocking IP: {action.get('ip')}")
+        _safe_print(f"  [EXEC] Blocking IP: {action.get('ip')}")
     elif t == "isolate_host":
-        print(f"  [EXEC] 🔒 Isolating host: {action.get('hostname')}")
+        _safe_print(f"  [EXEC] Isolating host: {action.get('hostname')}")
     else:
-        print(f"  [EXEC] ⚙️  Executing: {t}")
+        _safe_print(f"  [EXEC] Executing: {t}")

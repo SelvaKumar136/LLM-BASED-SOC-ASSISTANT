@@ -9,7 +9,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from tools.soar import create_ticket, block_ip, isolate_host
 from config import GROQ_API_KEY
 
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, api_key=GROQ_API_KEY)
+llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, api_key=GROQ_API_KEY, max_retries=10)
 tools = [create_ticket, block_ip, isolate_host]
 llm_with_tools = llm.bind_tools(tools)
 
@@ -59,7 +59,7 @@ def respond_node(state: dict) -> dict:
     severity = triage.get("severity", "Medium")
     category = triage.get("threat_category", "Unknown")
 
-    print(f"\n[RESPONSE] 🛡️ Determining response for {severity} / {category} alert...")
+    print(f"\n[RESPONSE] Determining response for {severity} / {category} alert...")
 
     messages = [
         SystemMessage(content=SYSTEM_PROMPT),
@@ -75,6 +75,7 @@ def respond_node(state: dict) -> dict:
         )),
     ]
 
+    response = None
     for iteration in range(5):
         response = llm_with_tools.invoke(messages)
         messages.append(response)
@@ -86,7 +87,7 @@ def respond_node(state: dict) -> dict:
             tool_name = tool_call["name"]
             tool_args = tool_call["args"]
             tool_id = tool_call["id"]
-            print(f"  [ACTION] ⚡ {tool_name}({json.dumps(tool_args)})")
+            print(f"  [ACTION] Calling: {tool_name}({json.dumps(tool_args)})")
 
             result = None
             for t in tools:
@@ -95,7 +96,7 @@ def respond_node(state: dict) -> dict:
                         result = t.invoke(tool_args)
                     except Exception as e:
                         result = {"error": str(e)}
-                        print(f"  [ACTION] ❌ Error: {e}")
+                        print(f"  [ACTION] ERROR: {e}")
                     break
 
             messages.append(ToolMessage(
@@ -103,5 +104,6 @@ def respond_node(state: dict) -> dict:
                 tool_call_id=tool_id,
             ))
 
-    print(f"[RESPONSE] ✅ Complete")
-    return {**state, "response": response.content or "Response actions executed."}
+    print(f"[RESPONSE] Complete")
+    response_text = response.content if response else "Response actions executed."
+    return {**state, "response": response_text or "Response actions executed."}

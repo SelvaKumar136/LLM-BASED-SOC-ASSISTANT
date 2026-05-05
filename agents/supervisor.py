@@ -22,7 +22,7 @@ class InvestigationState(TypedDict):
 
 def close_node(state: InvestigationState) -> InvestigationState:
     """Handle alerts classified as false positives."""
-    print(f"\n[CLOSE] ✅ False positive — {state['alert'].get('title')}")
+    print(f"\n[CLOSE] False positive -- {state['alert'].get('title')}")
     return {**state, "response": "Closed as false positive — no action required."}
 
 
@@ -35,7 +35,7 @@ def memory_node(state: InvestigationState) -> InvestigationState:
             investigation=state.get("investigation", ""),
         )
     except Exception as e:
-        print(f"[MEMORY] ⚠️  Failed to store incident: {e}")
+        print(f"[MEMORY] WARNING: Failed to store incident: {e}")
     return state
 
 
@@ -79,7 +79,7 @@ soc_graph = graph.compile()
 def run_investigation(alert: dict) -> dict:
     """Run the full investigation pipeline on a normalised alert."""
     print(f"\n{'='*60}")
-    print(f"🚨 NEW ALERT: {alert.get('title')}")
+    print(f"[ALERT] NEW ALERT: {alert.get('title')}")
     print(f"{'='*60}")
 
     t0 = time.time()
@@ -92,7 +92,7 @@ def run_investigation(alert: dict) -> dict:
     elapsed = time.time() - t0
 
     print(f"\n{'='*60}")
-    print(f"✅ ALERT PROCESSED: {alert.get('alert_id')} ({elapsed:.1f}s)")
+    print(f"[DONE] ALERT PROCESSED: {alert.get('alert_id')} ({elapsed:.1f}s)")
     print(f"{'='*60}\n")
 
     return final_state
